@@ -1,5 +1,6 @@
 package com.jobportal.jwt;
 
+
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,37 +25,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private JwtHelper jwtHelper;
 
+
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        String path = request.getRequestURI();
-        // Skip JWT check for public endpoints
-        if (path.equals("/users/register") ||
-                path.equals("/auth/login") ||
-                path.startsWith("/users/verifyOtp") ||
-                path.startsWith("/users/sendOtp") ||
-                path.equals("/users/changePass")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        // try {
-        // Thread.sleep(500);
-        // } catch (InterruptedException e) {
-        // throw new RuntimeException(e);
-        // }
-        // Authorization
+//        try {
+//            Thread.sleep(500);
+//        } catch (InterruptedException e) {
+//            throw new RuntimeException(e);
+//        }
+        //Authorization
 
         String requestHeader = request.getHeader("Authorization");
-        // Bearer 2352345235sdfrsfgsdfsdf
-        // logger.info(" Header : {}", requestHeader);
+        //Bearer 2352345235sdfrsfgsdfsdf
+        // logger.info(" Header :  {}", requestHeader);
         String username = null;
         String token = null;
         if (requestHeader != null && requestHeader.startsWith("Bearer")) {
-            // looking good
+            //looking good
             token = requestHeader.substring(7);
             try {
 
@@ -74,31 +65,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             }
 
+
         } else {
             logger.info("Invalid Header Value !! ");
         }
 
+
         //
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-            // fetch user detail from username
+
+            //fetch user detail from username
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
             Boolean validateToken = this.jwtHelper.validateToken(token, userDetails.getUsername());
             if (validateToken) {
 
-                // set the authentication
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
+                //set the authentication
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+
 
             } else {
                 logger.info("Validation fails !!");
             }
 
+
         }
 
         filterChain.doFilter(request, response);
+
 
     }
 }
